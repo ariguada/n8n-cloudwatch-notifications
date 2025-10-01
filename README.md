@@ -4,6 +4,8 @@ This project contains an **n8n** workflow that processes AWS SNS notifications f
 
 ## Project Overview
 
+![test01](images/test01.png)
+
 - **Purpose**: Automate AWS CloudWatch alarm notifications by integrating with SNS, formatting alerts, and distributing them to multiple platforms (Telegram, Slack, Jira).
 - **Technologies**:
   - n8n (automation platform).
