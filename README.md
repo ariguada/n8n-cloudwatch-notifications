@@ -127,18 +127,3 @@ The workflow consists of four nodes:
    - Set `active: true` in `workflow.json` or enable in n8n UI.
 7. **Test**:
    - Use the following `curl` commands to simulate SNS payloads.
-
-## Testing
-
-Test the workflow with these `curl` commands (use `/webhook-test/sns-alert` for testing, `/webhook/sns-alert` for production):
-
-1. **Standard Alarm**:
-   ```bash
-   curl -X POST https://your-user.app.n8n.cloud/webhook-test/sns-alert -H "Content-Type: application/json" -d '{
-     "Type": "Notification",
-     "MessageId": "a1b2c3d4-5678-9012-3456-789012345678",
-     "TopicArn": "arn:aws:sns:us-east-1:123456789012:CloudWatchAlerts",
-     "Subject": "ALARM: CPUUtilizationHigh",
-     "Message": "{\"AlarmName\":\"CPUUtilizationHigh\",\"NewStateValue\":\"ALARM\",\"NewStateReason\":\"CPU usage exceeded 80% for 5 minutes.\"}",
-     "Timestamp": "2025-10-01T13:45:00.123Z"
-   }'
