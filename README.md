@@ -4,7 +4,7 @@ This project contains an **n8n** workflow that processes AWS SNS notifications f
 
 ## Project Overview
 
-![test01](images/test01.png)
+![n8n-scheme.png](images/n8n-scheme.png)
 
 - **Purpose**: Automate AWS CloudWatch alarm notifications by integrating with SNS, formatting alerts, and distributing them to multiple platforms (Telegram, Slack, Jira).
 - **Technologies**:
@@ -111,21 +111,34 @@ The workflow consists of four nodes:
   - `summary`: `{{ $json.raw.AlarmName }} ({{ $json.raw.NewStateValue }})`
   - `description`: Formatted alert details
 
-## Setup Instructions
+---
 
-1. **Install n8n**: Use a self-hosted instance or n8n.cloud.
-2. **Import Workflow**:
-   - Copy `workflow.json` into n8n’s workflow import feature.
-3. **Configure Credentials**:
-   - **Telegram**: Add Bot API token (from BotFather) for `telegramApi`.
-   - **Slack**: Add Bot User OAuth Token for `slackApi`.
-   - **Jira**: Add API token or username/password for `jiraSoftwareServerApi`.
-4. **Update Parameters**:
-   - Slack: Replace `channel: "C1234567890"` with your Slack channel ID.
-   - Jira: Replace `projectKey: "PROJ"` and `issueType: "Task"` with your Jira project key and issue type.
-5. **Configure SNS**:
-   - In AWS Console, subscribe your SNS topic (e.g., CloudWatch alerts) to the n8n webhook URL (`https://your-n8n-instance/webhook/sns-alert`).
-6. **Activate Workflow**:
-   - Set `active: true` in `workflow.json` or enable in n8n UI.
-7. **Test**:
-   - Use the following `curl` commands to simulate SNS payloads.
+## Test 1: Standard Alarm Notification
+**Description:** Tests a CloudWatch alarm in ALARM state, sent to Telegram chat.
+
+```bash
+curl -X POST https://your-user.app.n8n.cloud/webhook-test/sns-alert \
+  -H "Content-Type: application/json" \
+  -d '{"Type":"Notification","MessageId":"a1b2c3d4-5678-9012-3456-789012345678","TopicArn":"arn:aws:sns:us-east-1:123456789012:CloudWatchAlerts","Subject":"ALARM: TestAlarm","Message":"{\"AlarmName\":\"TestAlarm\",\"NewStateValue\":\"ALARM\",\"NewStateReason\":\"Threshold breached for testing.\"}","Timestamp":"2025-10-01T13:28:00.123Z"}'
+```
+![test01.png](images/test01.png)
+
+## Test 2: High CPU Utilization Alarm
+**Description:** Tests a CloudWatch alarm for high CPU usage in ALARM state, sent to Telegram chat.
+
+```bash
+curl -X POST https://your-user.app.n8n.cloud/webhook-test/sns-alert \
+  -H "Content-Type: application/json" \
+  -d '{"Type":"Notification","MessageId":"b2c3d4e5-6789-0123-4567-890123456789","TopicArn":"arn:aws:sns:us-east-1:123456789012:CloudWatchAlerts","Subject":"ALARM: CPUUtilizationHigh","Message":"{\"AlarmName\":\"CPUUtilizationHigh\",\"NewStateValue\":\"ALARM\",\"NewStateReason\":\"CPU usage exceeded 80% for 5 minutes.\"}","Timestamp":"2025-10-01T13:32:00.456Z"}'
+```
+![test02.png](images/test02.png)
+
+## Test 3: OK State Notification
+**Description:** Tests a CloudWatch alarm returning to OK state, sent to Telegram chat.
+
+```bash
+curl -X POST https://your-user.app.n8n.cloud/webhook-test/sns-alert \
+  -H "Content-Type: application/json" \
+  -d '{"Type":"Notification","MessageId":"c3d4e5f6-7890-1234-5678-901234567890","TopicArn":"arn:aws:sns:us-east-1:123456789012:CloudWatchAlerts","Subject":"OK: DatabaseLatency","Message":"{\"AlarmName\":\"DatabaseLatency\",\"NewStateValue\":\"OK\",\"NewStateReason\":\"Database latency returned to normal (below 100ms).\"}","Timestamp":"2025-10-01T13:32:00.789Z"}'
+```
+![test03.png](images/test03.png)
