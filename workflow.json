@@ -1,0 +1,154 @@
+{
+  "name": "AWS CloudWatch Alerts to Slack/Jira/Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sns-alert",
+        "options": {
+          "responseData": "OK"
+        }
+      },
+      "id": "5f35aac4-6ac4-4ac5-9ab4-cc5f79bee319",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        192
+      ],
+      "webhookId": "c94ec735-836f-4b11-9f3c-5013706db9f8"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Get webhook body\nlet body = $input.first().json.body;\n\nif (!body) throw new Error(\"No body found in webhook input\");\n\n// Handle SNS subscription confirmation\nif (body.Type === 'SubscriptionConfirmation') {\n  const https = require('https');\n  https.get(body.SubscribeURL);\n  return [{ json: { message: 'Subscription confirmed' } }];\n}\n\n// Parse the Message field\nlet message;\ntry {\n  message = typeof body.Message === 'string' ? JSON.parse(body.Message) : body.Message || {};\n} catch (err) {\n  throw new Error(`Failed to parse SNS Message: ${err.message}`);\n}\n\n// Format message for Telegram and Slack\nlet formattedMessage = `\n🚨 *CloudWatch Alert* 🚨\n\n*Alarm Name:* ${message.AlarmName || 'N/A'}\n*State:* ${message.NewStateValue || 'N/A'}\n*Reason:* ${message.NewStateReason || 'N/A'}\n`;\n\n// Pass formatted message and raw data\nreturn [{\n  json: {\n    formatted: formattedMessage.trim(),\n    raw: message\n  }\n}];\n"
+      },
+      "id": "d4e22025-0f42-45df-b975-941b938342e7",
+      "name": "Parse SNS Message",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "12345676",
+        "text": "={{$json[\"formatted\"]}}",
+        "additionalFields": {
+          "parseMode": "MarkdownV2"
+        }
+      },
+      "id": "c6ace48f-6952-4c85-a08a-ca8714f67a7b",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        64,
+        192
+      ],
+      "webhookId": "e7f76f6f-0e88-4768-8191-e1c54eba04c6",
+      "credentials": {
+        "telegramApi": {
+          "id": "dzka6RmRPhEmemd5",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "channel": "C1234567890",
+        "text": "={{$json[\"formatted\"]}}",
+        "additionalFields": {}
+      },
+      "id": "a1b2c3d4-e5f6-7890-1234-567890123456",
+      "name": "Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        64,
+        32
+      ],
+      "credentials": {
+        "slackApi": {
+          "id": "slack123",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "issue",
+        "operation": "issueCreate",
+        "projectKey": "PROJ",
+        "issueType": "Task",
+        "summary": "={{ $json.raw.AlarmName }} ({{ $json.raw.NewStateValue }})",
+        "description": "=CloudWatch Alert\n\nAlarm Name: {{ $json.raw.AlarmName || 'N/A' }}\nState: {{ $json.raw.NewStateValue || 'N/A' }}\nReason: {{ $json.raw.NewStateReason || 'N/A' }}\nTimestamp: {{ $json.raw.Timestamp || 'N/A' }}",
+        "additionalFields": {}
+      },
+      "id": "b2c3d4e5-f6g7-8901-2345-678901234567",
+      "name": "Jira",
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        64,
+        352
+      ],
+      "credentials": {
+        "jiraSoftwareServerApi": {
+          "id": "jira123",
+          "name": "Jira account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse SNS Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse SNS Message": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Slack",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Jira",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e8b55f51-214b-4b6a-b6d7-dc776a3c8f79",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b842257145b6a0ae506c9969f3e98db13fb8c173b3df7c251bfedabe13f3e2a5"
+  },
+  "id": "NbSrAo2W9seXv0d9",
+  "tags": []
+}
