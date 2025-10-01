@@ -1,6 +1,6 @@
 # AWS CloudWatch Alerts to Telegram/Slack/Jira Workflow
 
-This project contains an [n8n](https://n8n.io/) workflow that processes AWS SNS notifications from CloudWatch alarms and sends formatted alerts to Telegram and Slack, while creating issues in Jira. The workflow handles SNS subscription confirmations and parses alert data for reliable notifications.
+This project contains an **n8n** workflow that processes AWS SNS notifications from CloudWatch alarms and sends formatted alerts to Telegram and Slack, while creating issues in Jira. The workflow handles SNS subscription confirmations and parses alert data for reliable notifications.
 
 ## Project Overview
 
